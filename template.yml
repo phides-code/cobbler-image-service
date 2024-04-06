@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  CobblerImageService:
+    Type: AWS::Serverless::Api
+    Description: "Serverless API for Cobbler images"
+    Properties:
+      Name: "cobbler-image-service"
+      StageName: Prod
+      Cors:
+        AllowMethods: "'OPTIONS, POST'"
+        AllowHeaders: "'Content-Type'"
+        AllowOrigin: "'http://localhost:5173'" # replace with frontend app URL
+
+  CobblerImageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 10
+      Handler: bootstrap
+      Runtime: provided.al2023
+      Policies:
+        - AWSLambdaExecute
+        - SecretsManagerReadWrite
+      Events:
+        ImageOptions:
+          Type: Api
+          Properties:
+            Path: /image
+            Method: OPTIONS
+            RestApiId: !Ref CobblerImageService
+        PutImage:
+          Type: Api
+          Properties:
+            Path: /image
+            Method: POST
+            RestApiId: !Ref CobblerImageService
+    Metadata:
+      BuildMethod: makefile
