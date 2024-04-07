@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/go-playground/validator"
@@ -79,9 +80,10 @@ func processPost(
 		return clientError(http.StatusBadRequest)
 	}
 
+	contentType := http.DetectContentType(imageBytes)
+
 	// Check if the uploaded file is an image
-	if !isImage(imageBytes) {
-		log.Println("Uploaded file is not a valid image")
+	if !strings.HasPrefix(contentType, "image/") {
 		return clientError(http.StatusBadRequest)
 	}
 
@@ -93,7 +95,7 @@ func processPost(
 		S3Client: &myS3,
 	}
 
-	fileName, err := basics.UploadFile(fileExt, image)
+	fileName, err := basics.UploadFile(image, fileExt, contentType)
 
 	if err != nil {
 		return serverError(err)

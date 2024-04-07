@@ -1,12 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
-	"image"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -57,22 +54,4 @@ func mergeHeaders(baseHeaders, additionalHeaders map[string]string) map[string]s
 		mergedHeaders[key] = value
 	}
 	return mergedHeaders
-}
-
-// Function to check if the provided bytes represent a valid image
-func isImage(data []byte) bool {
-	// Open the image using image.DecodeConfig to check the format
-	_, format, err := image.DecodeConfig(bytes.NewReader(data))
-	if err != nil {
-		log.Println("Error decoding image:", err)
-		return false
-	}
-
-	// Check if the format is one of the supported image formats
-	supportedFormats := map[string]bool{
-		"jpeg": true,
-		"png":  true,
-		"gif":  true,
-	}
-	return supportedFormats[strings.ToLower(format)]
 }

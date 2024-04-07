@@ -28,15 +28,16 @@ type BucketBasics struct {
 }
 
 // UploadFile reads from a file and puts the data into an object in a bucket.
-func (basics BucketBasics) UploadFile(fileType string, image *bytes.Reader) (string, error) {
+func (basics BucketBasics) UploadFile(image *bytes.Reader, fileExt string, contentType string) (string, error) {
 
-	fileName := uuid.NewString() + "." + fileType
+	fileName := uuid.NewString() + "." + fileExt
 	log.Println("fileName:", fileName)
 
 	_, err := basics.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(fileName),
-		Body:   image,
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(fileName),
+		Body:        image,
+		ContentType: aws.String(contentType),
 	})
 	if err != nil {
 		log.Printf("Couldn't upload file %v to %v. Here's why: %v\n",
