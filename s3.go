@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
 )
 
@@ -19,10 +20,7 @@ func getClient() (s3.Client, error) {
 	return s3Client, err
 }
 
-// BucketBasics encapsulates the Amazon Simple Storage Service (Amazon S3) actions
-// used in the examples.
-// It contains S3Client, an Amazon S3 service client that is used to perform bucket
-// and object actions.
+// BucketBasics encapsulates the Amazon Simple Storage Service (Amazon S3) actions used in the examples. It contains S3Client, an Amazon S3 service client that is used to perform bucket and object actions.
 type BucketBasics struct {
 	S3Client *s3.Client
 }
@@ -45,4 +43,22 @@ func (basics BucketBasics) UploadFile(image *bytes.Reader, fileExt string, conte
 	}
 
 	return fileName, err
+}
+
+// DeleteObjects deletes a list of objects from a bucket.
+func (basics BucketBasics) DeleteObjects(objectKeys []string) ([]types.DeletedObject, error) {
+	var objectIds []types.ObjectIdentifier
+	for _, key := range objectKeys {
+		objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String(key)})
+	}
+	output, err := basics.S3Client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
+		Bucket: aws.String(bucketName),
+		Delete: &types.Delete{Objects: objectIds},
+	})
+	if err != nil {
+		log.Printf("Couldn't delete objects from bucket %v. Here's why: %v\n", bucketName, err)
+	} else {
+		log.Printf("Deleted %v objects.\n", len(output.Deleted))
+	}
+	return output.Deleted, err
 }

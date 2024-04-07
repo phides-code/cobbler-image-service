@@ -4,10 +4,9 @@ import (
 	"log"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-var myS3 s3.Client
+var myS3 BucketBasics
 
 func init() {
 	s3Client, err := getClient()
@@ -16,7 +15,10 @@ func init() {
 		log.Fatal(err)
 	}
 
-	myS3 = s3Client
+	// Create an instance of BucketBasics with the S3 client
+	myS3 = BucketBasics{
+		S3Client: &s3Client,
+	}
 }
 
 func main() {

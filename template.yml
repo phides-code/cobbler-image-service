@@ -9,7 +9,7 @@ Resources:
       Name: "cobbler-image-service"
       StageName: Prod
       Cors:
-        AllowMethods: "'OPTIONS, POST'"
+        AllowMethods: "'OPTIONS, POST, DELETE'"
         AllowHeaders: "'Content-Type'"
         # AllowOrigin: "'http://localhost:5173'"
         AllowOrigin: "'https://cobbler.phil-code.com'"
@@ -35,6 +35,12 @@ Resources:
           Properties:
             Path: /image
             Method: POST
+            RestApiId: !Ref CobblerImageService
+        DeleteImage:
+          Type: Api
+          Properties:
+            Path: /image
+            Method: DELETE
             RestApiId: !Ref CobblerImageService
     Metadata:
       BuildMethod: makefile

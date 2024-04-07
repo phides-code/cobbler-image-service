@@ -30,10 +30,16 @@ type ImageData struct {
 	FileExt string `json:"fileExt"`
 }
 
+type FilesToDelete struct {
+	FileList []string `json:"fileList"`
+}
+
 func router(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	switch req.HTTPMethod {
 	case "POST":
 		return processPost(req)
+	case "DELETE":
+		return processDelete(req)
 	case "OPTIONS":
 		return processOptions()
 	default:
@@ -43,7 +49,7 @@ func router(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIG
 
 func processOptions() (events.APIGatewayProxyResponse, error) {
 	additionalHeaders := map[string]string{
-		"Access-Control-Allow-Methods": "OPTIONS, POST",
+		"Access-Control-Allow-Methods": "OPTIONS, POST, DELETE",
 		"Access-Control-Max-Age":       "3600",
 	}
 	mergedHeaders := mergeHeaders(headers, additionalHeaders)
@@ -90,12 +96,7 @@ func processPost(
 	fileExt := imageData.FileExt
 	image := bytes.NewReader(imageBytes)
 
-	// Create an instance of BucketBasics with the S3 client
-	basics := BucketBasics{
-		S3Client: &myS3,
-	}
-
-	fileName, err := basics.UploadFile(image, fileExt, contentType)
+	fileName, err := myS3.UploadFile(image, fileExt, contentType)
 
 	if err != nil {
 		return serverError(err)
@@ -113,6 +114,56 @@ func processPost(
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusCreated,
+		Body:       string(responseJson),
+		Headers:    headers,
+	}, nil
+}
+
+func processDelete(
+	req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+
+	var filesToDelete FilesToDelete
+
+	err := json.Unmarshal([]byte(req.Body), &filesToDelete)
+
+	if err != nil {
+		log.Println("Error decoding request body:", err)
+		return clientError(http.StatusBadRequest)
+	}
+
+	err = validate.Struct(&filesToDelete)
+
+	if err != nil {
+		log.Println("Error decoding request body:", err)
+		return clientError(http.StatusBadRequest)
+	}
+
+	deletedItems, err := myS3.DeleteObjects(filesToDelete.FileList)
+
+	if err != nil {
+		return serverError(err)
+	}
+
+	// Create a new array to store just the "key" values
+	var deletedKeys []string
+
+	// Iterate through the deletedItems and extract the "key" values
+	for _, deletedItem := range deletedItems {
+		deletedKeys = append(deletedKeys, *deletedItem.Key)
+	}
+
+	response := ResponseStructure{
+		Data:         deletedKeys,
+		ErrorMessage: nil,
+	}
+
+	responseJson, err := json.Marshal(response)
+	if err != nil {
+		return serverError(err)
+	}
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
 		Body:       string(responseJson),
 		Headers:    headers,
 	}, nil
