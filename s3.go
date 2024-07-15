@@ -33,7 +33,7 @@ func (basics BucketBasics) UploadFile(image *bytes.Reader, fileExt string, conte
 
 	_, err := basics.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket:      aws.String(bucketName),
-		Key:         aws.String(fileName),
+		Key:         aws.String("assets/" + fileName),
 		Body:        image,
 		ContentType: aws.String(contentType),
 	})
@@ -49,7 +49,7 @@ func (basics BucketBasics) UploadFile(image *bytes.Reader, fileExt string, conte
 func (basics BucketBasics) DeleteObjects(objectKeys []string) ([]types.DeletedObject, error) {
 	var objectIds []types.ObjectIdentifier
 	for _, key := range objectKeys {
-		objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String(key)})
+		objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String("assets/" + key)})
 	}
 	output, err := basics.S3Client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
 		Bucket: aws.String(bucketName),
