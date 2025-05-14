@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func getClient() (s3.Client, error) {
+func getS3Client() (s3.Client, error) {
 	sdkConfig, err := config.LoadDefaultConfig(context.TODO())
 
 	s3Client := *s3.NewFromConfig(sdkConfig)

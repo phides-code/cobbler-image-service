@@ -9,9 +9,10 @@ import (
 var myS3 BucketBasics
 
 func init() {
-	s3Client, err := getClient()
+	s3Client, err := getS3Client()
 
 	if err != nil {
+		log.Println("init() error running getS3Client(): ")
 		log.Fatal(err)
 	}
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"log"
@@ -22,7 +21,7 @@ var validate *validator.Validate = validator.New()
 
 var headers = map[string]string{
 	"Access-Control-Allow-Origin":  OriginURL,
-	"Access-Control-Allow-Headers": "Content-Type",
+	"Access-Control-Allow-Headers": "Content-Type, x-api-key",
 }
 
 type ImageData struct {
@@ -34,7 +33,9 @@ type FilesToDelete struct {
 	FileList []string `json:"fileList"`
 }
 
-func router(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	log.Println("router() received " + req.HTTPMethod + " request")
+
 	switch req.HTTPMethod {
 	case "POST":
 		return processPost(req)
@@ -43,6 +44,7 @@ func router(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIG
 	case "OPTIONS":
 		return processOptions()
 	default:
+		log.Println("router() error parsing HTTP method")
 		return clientError(http.StatusMethodNotAllowed)
 	}
 }
@@ -62,20 +64,18 @@ func processOptions() (events.APIGatewayProxyResponse, error) {
 
 func processPost(
 	req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	log.Println("running processPost()")
 
 	var imageData ImageData
-
 	err := json.Unmarshal([]byte(req.Body), &imageData)
-
 	if err != nil {
-		log.Println("Error decoding request body:", err)
+		log.Printf("Can't unmarshal body: %v", err)
 		return clientError(http.StatusBadRequest)
 	}
 
 	err = validate.Struct(&imageData)
-
 	if err != nil {
-		log.Println("Error decoding request body:", err)
+		log.Printf("Invalid body: %v", err)
 		return clientError(http.StatusBadRequest)
 	}
 
@@ -90,6 +90,7 @@ func processPost(
 
 	// Check if the uploaded file is an image
 	if !strings.HasPrefix(contentType, "image/") {
+		log.Println("Uploaded file is not an image")
 		return clientError(http.StatusBadRequest)
 	}
 
@@ -109,6 +110,7 @@ func processPost(
 
 	responseJson, err := json.Marshal(response)
 	if err != nil {
+		log.Println("processPost() error running json.Marshal")
 		return serverError(err)
 	}
 
@@ -119,28 +121,26 @@ func processPost(
 	}, nil
 }
 
+// TOOD: why does this take a multiple file list? why not just one?
 func processDelete(
 	req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	var filesToDelete FilesToDelete
-
 	err := json.Unmarshal([]byte(req.Body), &filesToDelete)
-
 	if err != nil {
-		log.Println("Error decoding request body:", err)
+		log.Printf("Can't unmarshal body: %v", err)
 		return clientError(http.StatusBadRequest)
 	}
 
 	err = validate.Struct(&filesToDelete)
-
 	if err != nil {
-		log.Println("Error decoding request body:", err)
+		log.Printf("Invalid body: %v", err)
 		return clientError(http.StatusBadRequest)
 	}
 
 	deletedItems, err := myS3.DeleteObjects(filesToDelete.FileList)
-
 	if err != nil {
+		log.Printf("Couldn't delete objects from bucket: %v", err)
 		return serverError(err)
 	}
 
@@ -159,6 +159,7 @@ func processDelete(
 
 	responseJson, err := json.Marshal(response)
 	if err != nil {
+		log.Println("processDelete() error running json.Marshal")
 		return serverError(err)
 	}
 
