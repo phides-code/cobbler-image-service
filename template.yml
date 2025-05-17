@@ -22,20 +22,22 @@ Resources:
       Auth:
         ApiKeyRequired: true
 
-  CobblerApiKey:
+  CobblerImageApiKey:
     Type: AWS::ApiGateway::ApiKey
+    DependsOn: CobblerImageServiceProdStage
     Properties:
-      Name: "CobblerApiKey"
+      Name: "CobblerImageApiKey"
       Enabled: true
       Value: !Ref ApiKeyValue
       StageKeys:
         - RestApiId: !Ref CobblerImageService
           StageName: Prod
 
-  CobblerUsagePlan:
+  CobblerImageUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
+    DependsOn: CobblerImageServiceProdStage
     Properties:
-      UsagePlanName: "CobblerUsagePlan"
+      UsagePlanName: "CobblerImageUsagePlan"
       ApiStages:
         - ApiId: !Ref CobblerImageService
           Stage: Prod
@@ -46,12 +48,12 @@ Resources:
         Limit: 10000
         Period: MONTH
 
-  CobblerUsagePlanKey:
+  CobblerImageUsagePlanKey:
     Type: AWS::ApiGateway::UsagePlanKey
     Properties:
-      KeyId: !Ref CobblerApiKey
+      KeyId: !Ref CobblerImageApiKey
       KeyType: API_KEY
-      UsagePlanId: !Ref CobblerUsagePlan
+      UsagePlanId: !Ref CobblerImageUsagePlan
 
   CobblerImageFunction:
     Type: AWS::Serverless::Function
