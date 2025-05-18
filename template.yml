@@ -84,7 +84,7 @@ Resources:
         DeleteImage:
           Type: Api
           Properties:
-            Path: /image
+            Path: /image/{id}
             Method: DELETE
             RestApiId: !Ref CobblerImageService
             Auth:

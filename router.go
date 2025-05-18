@@ -29,10 +29,6 @@ type ImageData struct {
 	FileExt string `json:"fileExt"`
 }
 
-type FilesToDelete struct {
-	FileList []string `json:"fileList"`
-}
-
 func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	log.Println("router() received " + req.HTTPMethod + " request")
 
@@ -121,39 +117,24 @@ func processPost(
 	}, nil
 }
 
-// TOOD: why does this take a multiple file list? why not just one?
 func processDelete(
 	req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
-	var filesToDelete FilesToDelete
-	err := json.Unmarshal([]byte(req.Body), &filesToDelete)
-	if err != nil {
-		log.Printf("Can't unmarshal body: %v", err)
+	id, idPresent := req.PathParameters["id"]
+	if !idPresent {
+		log.Println("processDelete() error reading req.PathParameters[\"id\"]")
 		return clientError(http.StatusBadRequest)
 	}
+	log.Println("running processDelete on id: " + id)
 
-	err = validate.Struct(&filesToDelete)
+	_, err := myS3.DeleteObject(id)
 	if err != nil {
-		log.Printf("Invalid body: %v", err)
-		return clientError(http.StatusBadRequest)
-	}
-
-	deletedItems, err := myS3.DeleteObjects(filesToDelete.FileList)
-	if err != nil {
-		log.Printf("Couldn't delete objects from bucket: %v", err)
+		log.Printf("Couldn't delete object from bucket: %v", err)
 		return serverError(err)
 	}
 
-	// Create a new array to store just the "key" values
-	var deletedKeys []string
-
-	// Iterate through the deletedItems and extract the "key" values
-	for _, deletedItem := range deletedItems {
-		deletedKeys = append(deletedKeys, *deletedItem.Key)
-	}
-
 	response := ResponseStructure{
-		Data:         deletedKeys,
+		Data:         id,
 		ErrorMessage: nil,
 	}
 

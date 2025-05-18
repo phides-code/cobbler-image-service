@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
 )
 
@@ -46,19 +45,36 @@ func (basics BucketBasics) UploadFile(image *bytes.Reader, fileExt string, conte
 }
 
 // DeleteObjects deletes a list of objects from a bucket.
-func (basics BucketBasics) DeleteObjects(objectKeys []string) ([]types.DeletedObject, error) {
-	var objectIds []types.ObjectIdentifier
-	for _, key := range objectKeys {
-		objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String("assets/" + key)})
-	}
-	output, err := basics.S3Client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
+// func (basics BucketBasics) DeleteObjects(objectKeys []string) ([]types.DeletedObject, error) {
+// 	var objectIds []types.ObjectIdentifier
+// 	for _, key := range objectKeys {
+// 		objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String("assets/" + key)})
+// 	}
+// 	output, err := basics.S3Client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
+// 		Bucket: aws.String(bucketName),
+// 		Delete: &types.Delete{Objects: objectIds},
+// 	})
+// 	if err != nil {
+// 		log.Printf("Couldn't delete objects from bucket %v. Here's why: %v\n", bucketName, err)
+// 	} else {
+// 		log.Printf("Deleted %v objects.\n", len(output.Deleted))
+// 	}
+// 	return output.Deleted, err
+// }
+
+// DeleteObject deletes a single object from a bucket and returns the deleted object key.
+func (basics BucketBasics) DeleteObject(objectKey string) (string, error) {
+	_, err := basics.S3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
 		Bucket: aws.String(bucketName),
-		Delete: &types.Delete{Objects: objectIds},
+		Key:    aws.String("assets/" + objectKey),
 	})
+
 	if err != nil {
-		log.Printf("Couldn't delete objects from bucket %v. Here's why: %v\n", bucketName, err)
-	} else {
-		log.Printf("Deleted %v objects.\n", len(output.Deleted))
+		log.Printf("Couldn't delete object %v from bucket %v. Here's why: %v\n", objectKey, bucketName, err)
+		return "", err
 	}
-	return output.Deleted, err
+
+	log.Printf("DeleteObject finished with %v.\n", objectKey)
+
+	return objectKey, err
 }
