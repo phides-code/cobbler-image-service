@@ -13,8 +13,8 @@ import (
 )
 
 type ResponseStructure struct {
-	Data         interface{} `json:"data"`
-	ErrorMessage *string     `json:"errorMessage"` // can be string or nil
+	Data         *string `json:"data"`
+	ErrorMessage *string `json:"errorMessage"` // can be string or nil
 }
 
 var validate *validator.Validate = validator.New()
@@ -100,7 +100,7 @@ func processPost(
 	}
 
 	response := ResponseStructure{
-		Data:         fileName,
+		Data:         &fileName,
 		ErrorMessage: nil,
 	}
 
@@ -134,7 +134,7 @@ func processDelete(
 	}
 
 	response := ResponseStructure{
-		Data:         id,
+		Data:         &id,
 		ErrorMessage: nil,
 	}
 
