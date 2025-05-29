@@ -1,3 +1,4 @@
 .env
 .aws-sam/
 food-pics/
+clean-s3.sh

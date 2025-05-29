@@ -1,12 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
-Parameters:
-  ApiKeyValue:
-    Type: String
-    NoEcho: true
-    Description: "API Key for the CobblerImageService"
-
 Resources:
   CobblerImageService:
     Type: AWS::Serverless::Api
@@ -14,46 +8,35 @@ Resources:
     Properties:
       Name: "cobbler-image-service"
       StageName: Prod
+      Auth:
+        DefaultAuthorizer: AWS_IAM
+        InvokeRole: NONE  
       Cors:
         AllowMethods: "'OPTIONS, POST, DELETE'"
-        AllowHeaders: "'Content-Type, x-api-key'"
-        # AllowOrigin: "'http://localhost:5173'"
-        AllowOrigin: "'https://cobbler.phil-code.com'"
-      Auth:
-        ApiKeyRequired: true
+        AllowHeaders: "'Content-Type, x-amz-content-sha256, x-amz-date, X-Amz-Security-Token, Authorization'"
+        AllowOrigin: "'http://localhost:5173'"
+        # AllowOrigin: "'https://cobbler.phil-code.com'"
+        AllowCredentials: true
 
-  CobblerImageApiKey:
-    Type: AWS::ApiGateway::ApiKey
-    DependsOn: CobblerImageServiceProdStage
-    Properties:
-      Name: "CobblerImageApiKey"
-      Enabled: true
-      Value: !Ref ApiKeyValue
-      StageKeys:
-        - RestApiId: !Ref CobblerImageService
-          StageName: Prod
+      # Logging settings
+      MethodSettings:
+        - LoggingLevel: INFO
+          ResourcePath: "/*"
+          HttpMethod: "*"
+          MetricsEnabled: true
+          DataTraceEnabled: true
+      AccessLogSetting:
+        DestinationArn: 
+          Fn::GetAtt:
+            - CobblerImageLogGroup
+            - Arn
+        Format: '$context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] "$context.httpMethod $context.resourcePath $context.protocol" $context.status $context.responseLength $context.requestId'
 
-  CobblerImageUsagePlan:
-    Type: AWS::ApiGateway::UsagePlan
-    DependsOn: CobblerImageServiceProdStage
+  CobblerImageLogGroup:
+    Type: AWS::Logs::LogGroup
     Properties:
-      UsagePlanName: "CobblerImageUsagePlan"
-      ApiStages:
-        - ApiId: !Ref CobblerImageService
-          Stage: Prod
-      Throttle:
-        RateLimit: 100
-        BurstLimit: 20
-      Quota:
-        Limit: 10000
-        Period: MONTH
-
-  CobblerImageUsagePlanKey:
-    Type: AWS::ApiGateway::UsagePlanKey
-    Properties:
-      KeyId: !Ref CobblerImageApiKey
-      KeyType: API_KEY
-      UsagePlanId: !Ref CobblerImageUsagePlan
+      LogGroupName: !Sub "/aws/api-gateway/${CobblerImageService}"
+      RetentionInDays: 7    
 
   CobblerImageFunction:
     Type: AWS::Serverless::Function
@@ -72,22 +55,26 @@ Resources:
             Method: OPTIONS
             RestApiId: !Ref CobblerImageService
             Auth:
-              ApiKeyRequired: false
+              Authorizer: NONE
+        ImageOptionsId:
+          Type: Api
+          Properties:
+            Path: /image/{id}
+            Method: OPTIONS
+            RestApiId: !Ref CobblerImageService
+            Auth:
+              Authorizer: NONE
         PutImage:
           Type: Api
           Properties:
             Path: /image
             Method: POST
             RestApiId: !Ref CobblerImageService
-            Auth:
-              ApiKeyRequired: true
         DeleteImage:
           Type: Api
           Properties:
             Path: /image/{id}
             Method: DELETE
             RestApiId: !Ref CobblerImageService
-            Auth:
-              ApiKeyRequired: true
     Metadata:
       BuildMethod: makefile
