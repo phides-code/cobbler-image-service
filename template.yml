@@ -14,8 +14,8 @@ Resources:
       Cors:
         AllowMethods: "'OPTIONS, POST, DELETE'"
         AllowHeaders: "'Content-Type, x-amz-content-sha256, x-amz-date, X-Amz-Security-Token, Authorization'"
-        # AllowOrigin: "'http://localhost:5173'"
-        AllowOrigin: "'https://cobbler.phil-code.com'"
+        AllowOrigin: "'http://localhost:5173'"
+        # AllowOrigin: "'https://cobbler.phil-code.com'"
         AllowCredentials: true
 
       # Logging settings

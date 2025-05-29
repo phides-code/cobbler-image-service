@@ -17,15 +17,14 @@ jobs:
             SAM_REGION: us-east-1
             SAM_CAPABILITIES: CAPABILITY_IAM
         steps:
-            - uses: actions/checkout@v4
+            - name: Checkout
+              uses: actions/checkout@v4.2.1
 
             - name: Set up Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version: '1.x'
+              uses: actions/setup-go@v5.0.2
 
-            - name: Build
-              run: go build -tags lambda.norpc -o bootstrap -ldflags "-linkmode external -extldflags -static" ./...
+            - name: SAM Build
+              run: sam build
 
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v4
@@ -36,4 +35,10 @@ jobs:
 
             - name: Deploy with SAM
               run: |
-                  sam deploy --parameter-overrides ApiKeyValue=${{ secrets.API_KEY }} --stack-name ${{ env.SAM_STACK_NAME }} --region ${{ env.SAM_REGION }} --capabilities ${{ env.SAM_CAPABILITIES }} --resolve-s3 --no-confirm-changeset --no-fail-on-empty-changeset
+                  sam deploy \
+                  --stack-name ${{ env.SAM_STACK_NAME }} \
+                  --region ${{ env.SAM_REGION }} \
+                  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+                  --resolve-s3 \
+                  --no-confirm-changeset \
+                  --no-fail-on-empty-changeset
