@@ -1,6 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  ImageBucketName:
+    Type: String
+    Description: Name of the S3 bucket for images
+
 Resources:
   CobblerImageService:
     Type: AWS::Serverless::Api
@@ -25,18 +30,6 @@ Resources:
           HttpMethod: "*"
           MetricsEnabled: true
           DataTraceEnabled: true
-  #     AccessLogSetting:
-  #       DestinationArn: 
-  #         Fn::GetAtt:
-  #           - CobblerImageLogGroup
-  #           - Arn
-  #       Format: '$context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] "$context.httpMethod $context.resourcePath $context.protocol" $context.status $context.responseLength $context.requestId'
-
-  # CobblerImageLogGroup:
-  #   Type: AWS::Logs::LogGroup
-  #   Properties:
-  #     LogGroupName: !Sub "/aws/api-gateway/${CobblerImageService}"
-  #     RetentionInDays: 7    
 
   CobblerImageFunction:
     Type: AWS::Serverless::Function
