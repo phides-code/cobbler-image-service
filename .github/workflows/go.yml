@@ -42,3 +42,4 @@ jobs:
                   --resolve-s3 \
                   --no-confirm-changeset \
                   --no-fail-on-empty-changeset
+                  --parameter-overrides ImageBucketName=${{ secrets.AWS_BUCKET_NAME }} \

@@ -47,6 +47,16 @@ Resources:
       MemorySize: 512
       Policies:
         - AWSLambdaExecute
+        - PolicyName: S3DeletePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub arn:aws:s3:::${ImageBucketName}/assets/*
+
       Events:
         ImageOptions:
           Type: Api
