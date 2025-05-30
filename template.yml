@@ -25,18 +25,18 @@ Resources:
           HttpMethod: "*"
           MetricsEnabled: true
           DataTraceEnabled: true
-      AccessLogSetting:
-        DestinationArn: 
-          Fn::GetAtt:
-            - CobblerImageLogGroup
-            - Arn
-        Format: '$context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] "$context.httpMethod $context.resourcePath $context.protocol" $context.status $context.responseLength $context.requestId'
+  #     AccessLogSetting:
+  #       DestinationArn: 
+  #         Fn::GetAtt:
+  #           - CobblerImageLogGroup
+  #           - Arn
+  #       Format: '$context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] "$context.httpMethod $context.resourcePath $context.protocol" $context.status $context.responseLength $context.requestId'
 
-  CobblerImageLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/api-gateway/${CobblerImageService}"
-      RetentionInDays: 7    
+  # CobblerImageLogGroup:
+  #   Type: AWS::Logs::LogGroup
+  #   Properties:
+  #     LogGroupName: !Sub "/aws/api-gateway/${CobblerImageService}"
+  #     RetentionInDays: 7    
 
   CobblerImageFunction:
     Type: AWS::Serverless::Function
