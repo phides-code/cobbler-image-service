@@ -44,24 +44,6 @@ func (basics BucketBasics) UploadFile(image *bytes.Reader, fileExt string, conte
 	return fileName, err
 }
 
-// DeleteObjects deletes a list of objects from a bucket.
-// func (basics BucketBasics) DeleteObjects(objectKeys []string) ([]types.DeletedObject, error) {
-// 	var objectIds []types.ObjectIdentifier
-// 	for _, key := range objectKeys {
-// 		objectIds = append(objectIds, types.ObjectIdentifier{Key: aws.String("assets/" + key)})
-// 	}
-// 	output, err := basics.S3Client.DeleteObjects(context.TODO(), &s3.DeleteObjectsInput{
-// 		Bucket: aws.String(bucketName),
-// 		Delete: &types.Delete{Objects: objectIds},
-// 	})
-// 	if err != nil {
-// 		log.Printf("Couldn't delete objects from bucket %v. Here's why: %v\n", bucketName, err)
-// 	} else {
-// 		log.Printf("Deleted %v objects.\n", len(output.Deleted))
-// 	}
-// 	return output.Deleted, err
-// }
-
 // DeleteObject deletes a single object from a bucket and returns the deleted object key.
 func (basics BucketBasics) DeleteObject(objectKey string) (string, error) {
 	_, err := basics.S3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
