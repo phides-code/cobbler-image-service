@@ -2,6 +2,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Parameters:
+  AwsCfToken:
+    Type: String
+    NoEcho: true
+    Description: Token for API auth (e.g. Cloudflare or custom); set via --parameter-overrides AwsCfToken=xxx when deploying
   ImageBucketName:
     Type: String
     Description: Name of the S3 bucket for images
@@ -18,7 +22,7 @@ Resources:
         InvokeRole: NONE  
       Cors:
         AllowMethods: "'OPTIONS, POST, DELETE'"
-        AllowHeaders: "'Content-Type, x-amz-content-sha256, x-amz-date, X-Amz-Security-Token, Authorization'"
+        AllowHeaders: "'Content-Type, X-CF-Token'"
         # AllowOrigin: "'http://localhost:5173'"
         AllowOrigin: "'https://cobbler.phil-code.com'"
         AllowCredentials: true
@@ -38,6 +42,9 @@ Resources:
       Handler: bootstrap
       Runtime: provided.al2023
       MemorySize: 512
+      Environment:
+        Variables:
+          AWS_CF_TOKEN: !Ref AwsCfToken  # comes from --parameter-overrides      
       Policies:
         - AWSLambdaBasicExecutionRole
         - Version: "2012-10-17"
@@ -57,16 +64,12 @@ Resources:
             Path: /image
             Method: OPTIONS
             RestApiId: !Ref CobblerImageService
-            Auth:
-              Authorizer: NONE
         ImageOptionsId:
           Type: Api
           Properties:
             Path: /image/{id}
             Method: OPTIONS
             RestApiId: !Ref CobblerImageService
-            Auth:
-              Authorizer: NONE
         PutImage:
           Type: Api
           Properties:

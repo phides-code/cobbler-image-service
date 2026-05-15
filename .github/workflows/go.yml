@@ -13,9 +13,7 @@ jobs:
     build:
         runs-on: ubuntu-latest
         env:
-            SAM_STACK_NAME: cobbler-image-service
             SAM_REGION: us-east-1
-            SAM_CAPABILITIES: CAPABILITY_IAM
         steps:
             - name: Checkout
               uses: actions/checkout@v4.2.1
@@ -35,11 +33,6 @@ jobs:
 
             - name: Deploy with SAM
               run: |
-                  sam deploy \
-                  --stack-name ${{ env.SAM_STACK_NAME }} \
-                  --region ${{ env.SAM_REGION }} \
-                  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-                  --resolve-s3 \
-                  --no-confirm-changeset \
-                  --no-fail-on-empty-changeset \
-                  --parameter-overrides ImageBucketName="${{ secrets.AWS_BUCKET_NAME }}"
+                  make deploy
+              env:
+                  AWS_CF_TOKEN: ${{ secrets.AWS_CF_TOKEN }}

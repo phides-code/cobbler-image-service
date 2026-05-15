@@ -11,7 +11,7 @@ init: build
 
 .PHONY: deploy
 deploy: build
-	sam deploy
+	sam deploy --parameter-overrides AwsCfToken="$(AWS_CF_TOKEN)"
 
 .PHONY: delete
 delete:

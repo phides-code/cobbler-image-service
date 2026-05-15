@@ -7,3 +7,7 @@ const OriginURL = "https://cobbler.phil-code.com"
 const ApiPath = "image"
 
 const bucketName = "cobbler-dfec61c3"
+
+// const localMode = true
+
+const localMode = false
