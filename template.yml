@@ -17,9 +17,6 @@ Resources:
     Properties:
       Name: "cobbler-image-service"
       StageName: Prod
-      Auth:
-        DefaultAuthorizer: AWS_IAM
-        InvokeRole: NONE  
       Cors:
         AllowMethods: "'OPTIONS, POST, DELETE'"
         AllowHeaders: "'Content-Type, X-CF-Token'"
