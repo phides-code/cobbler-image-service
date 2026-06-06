@@ -44,6 +44,10 @@ func router(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, 
 		providedCfToken := req.Headers["X-CF-Token"]
 
 		if providedCfToken != awsCfToken {
+			log.Println("*** token mismatch ***")
+			log.Println("providedCfToken: " + providedCfToken)
+			log.Println("req.Headers[\"X-CF-Token\"]: " + req.Headers["X-CF-Token"])
+
 			return clientError(http.StatusUnauthorized)
 		}
 	}
